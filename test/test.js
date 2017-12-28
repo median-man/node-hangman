@@ -64,11 +64,121 @@ describe('Letter', () => {
 });
 
 // unit tests for Word class
-describe.skip('Word', () => {
+describe('Word', () => {
+  it('it responds to hasHiddenLetters, showLetter, and hasLetter', () => {
+    const methods = ['hasHiddenLetters', 'showLetter', 'hasLetter'];
+    methods.forEach((method) => {
+      expect(new Word('abc', '-'), method).to.respondTo(method);
+    });
+  });
   describe('constructor', () => {
-    it('accepts a word parameter');
-    it('throws if the word is not a string');
-    it('throws if the word is an empty string');
-    it('adds a letter object to letters for each letter in the word');
+    it('accepts a word parameter and a placeholder paremeter', () => {
+      Word('hello', '-');
+    });
+    it('throws if the word is not a string', () => {
+      expect(() => new Word(10, '-')).to.throw();
+    });
+    it('throws if the word is an empty string', () => {
+      expect(() => new Word('', '-')).to.throw();
+    });
+    it('adds a letter object to letters for each letter in the word', () => {
+      const placeholder = '-';
+      const word = new Word('abc', placeholder);
+      const letters = [
+        new Letter('a', placeholder),
+        new Letter('b', placeholder),
+        new Letter('c', placeholder),
+      ];
+      expect(word.letters).to.be.an('array');
+      expect(word.letters.length).to.equal(3);
+      expect(word.letters).to.have.deep.members(letters);
+    });
+    it('initializes the source property as the word argument', () => {
+      expect(new Word('abc', '-')).to.haveOwnProperty('source');
+      expect(new Word('abc', '-').source).to.equal('abc');
+      expect(new Word('a c', '-').source).to.equal('a c');
+    });
+  });
+  describe('toString', () => {
+    it('returns the word with hidden letters replaced with the placeholder', () => {
+      let word = new Word('abc', '-');
+      expect(word.toString()).to.equal('---');
+
+      word = new Word('a b', '-');
+      expect(word.toString()).to.equal('- -');
+
+      word = new Word('a b', '-');
+      word.letters[2].isHidden = false;
+      expect(word.toString()).to.equal('- b');
+
+      word = new Word('a b', '-');
+      word.letters[0].isHidden = false;
+      word.letters[2].isHidden = false;
+      expect(word.toString()).to.equal('a b');
+    });
+  });
+  describe('hasHiddenLetters', () => {
+    it('returns true if any of the letters in the word are hidden', () => {
+      let word = new Word('abc', '-');
+      expect(word.hasHiddenLetters()).to.be.true;
+
+      word = new Word('abc', '-');
+      word.letters[1].isHidden = false;
+      word.letters[2].isHidden = false;
+      expect(word.hasHiddenLetters()).to.be.true;
+    });
+    it('returns false if all letters are not hidden', () => {
+      let word = new Word('a', '-');
+      word.letters[0].isHidden = false;
+      expect(word.hasHiddenLetters()).to.be.false;
+
+      word = new Word('abc', '-');
+      word.letters[0].isHidden = false;
+      word.letters[1].isHidden = false;
+      word.letters[2].isHidden = false;
+      expect(word.hasHiddenLetters()).to.be.false;
+    });
+  });
+  describe('hasLetter', () => {
+    it('returns true if the letter is in the source word', () => {
+      let word = new Word('a', '-');
+      expect(word.hasLetter('a')).to.be.true;
+
+      word = new Word('abc', '-');
+      expect(word.hasLetter('b')).to.be.true;
+
+      word = new Word('frodo baggins', '-');
+      expect(word.hasLetter('g')).to.be.true;
+    });
+    it('returns false if the letter is not in the source word', () => {
+      let word = new Word('a', '-');
+      expect(word.hasLetter('d')).to.be.false;
+
+      word = new Word('abc', '-');
+      expect(word.hasLetter('g')).to.be.false;
+
+      word = new Word('frodo baggins', '-');
+      expect(word.hasLetter('z')).to.be.false;
+    });
+  });
+  describe('showLetter', () => {
+    it('changes the isHidden propery on all matching letters', () => {
+      let word = new Word('a', '-');
+      word.showLetter('a');
+      expect(word.letters[0].isHidden).to.be.false;
+
+      word = new Word('aa', '-');
+      word.showLetter('a');
+      expect(word.letters).to.satisfy(letters => letters.every(letter => !letter.isHidden));
+
+      word = new Word('a a', '-');
+      word.showLetter('a');
+      expect(word.letters).to.satisfy(letters => letters.every(letter => !letter.isHidden));
+    });
+    it('does nothing if there is no matching letter', () => {
+      let word = new Word('a', '-');
+      expect(() => word.showLetter('d')).to.not.throw();
+      expect(word.letters[0].isHidden).to.be.true;
+    });
   });
 });

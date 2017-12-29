@@ -2,7 +2,7 @@
 This is a command line Hangman word game written for NodeJS. Guess the names of world countries.
 
 ## Installation and use
-* NodeJS must be intsalled.
+* NodeJS must be installed.
 * `npm i` to install dependencies.
 * `npm start` will start the game.
 

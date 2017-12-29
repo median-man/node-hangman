@@ -24,13 +24,11 @@ function getWordSet() {
       message: 'Choose region',
       choices: () => {
         const list = [];
-        let name = '';
         list.push({ name: `World (${regions.count})`, value: 'All' });
         Object.entries(regions).forEach((entry) => {
           const region = entry[0];
-          if (region !== 'count') {
-            name = region || 'Other';
-            list.push({ name: `${name} (${regions[region].count})`, value: region });
+          if (region !== 'count' && region !== '') {
+            list.push({ name: `${region} (${regions[region].count})`, value: region });
           }
         });
         return list;
@@ -41,7 +39,6 @@ function getWordSet() {
       message: 'Choose subregion',
       when: ({ region }) => region !== 'All' && region !== '',
       choices: ({ region }) => {
-        console.log('getting choices');
         const list = [];
         list.push({ name: `All (${regions[region].count})`, value: 'All' });
         Object.entries(regions[region]).forEach((entry) => {

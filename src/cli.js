@@ -11,13 +11,17 @@ let word = null;
 let guessed = '';
 let guessesLeft = 0;
 
+function renderLine(line) {
+  console.log(line); // eslint-disable-line
+}
+
 function getRandomWord() {
   const index = Math.floor(Math.random() * words.length);
   return words.splice(index, 1)[0];
 }
 
 function renderWord(strWord) {
-  console.log(`\n${strWord.split('').join(' ')}\n`);
+  renderLine(`\n${strWord.split('').join(' ')}\n`);
 }
 
 function validateInput(input) {
@@ -30,38 +34,38 @@ function validateInput(input) {
 
 // handle user guess. returns true if round finished
 function handleGuess({ guess }) {
-  // letter or has already been guessed
+  // is letter or has already been guessed
   if (!validateInput(guess)) {
-    console.log('choose a letter');
+    renderLine('choose a letter');
     return false;
   }
   if (guessed.includes(guess)) {
-    console.log(`Already guessed ${guess}`);
+    renderLine(`Already guessed ${guess}`);
     return false;
   }
   guessed += guess;
 
   if (!word.hasLetter(guess)) {
     guessesLeft -= 1;
-    console.log(guessesLeft);
+    renderLine(guessesLeft);
     if (guessesLeft === 0) {
-      console.log(`Round over. You failed to correctly guess '${word.source}'`);
+      renderLine(`Round over. You failed to correctly guess '${word.source}'`);
       return true;
     }
-    console.log('Incorrect');
-    console.log(`${guessesLeft} guesses remaining`);
+    renderLine('Incorrect');
+    renderLine(`${guessesLeft} guesses remaining`);
     return false;
   }
 
   word.showLetter(guess);
 
   // if all letters in the word have been guessed
-  if (!word.hasHiddenLetters()) {
+  if (word.allLettersVisible()) {
     renderWord(word.toString());
-    console.log('You completed the word!');
+    renderLine('You completed the word!');
     return true;
   }
-  console.log('Success!!');
+  renderLine('Success!!');
   return false;
 }
 
@@ -83,8 +87,7 @@ function startRound() {
       .then((startNewRound) => {
         if (startNewRound) return startRound();
         return nextGuess();
-      })
-      .catch(console.log);
+      });
   }
 
   // game continues until no words remain
@@ -95,7 +98,7 @@ function startRound() {
     guessesLeft = STARTING_GUESSES;
     nextGuess();
   } else {
-    console.log('No more words left');
+    renderLine('No more words left');
   }
 }
 

@@ -1,3 +1,9 @@
 const cli = require('./src/cli.js');
-const countryNames = require('./src/countryNames.js');
-cli.start(countryNames);
+const wordSetCli = require('./src/wordSetCli.js');
+
+wordSetCli
+  .getWordSet()
+  .then(cli.start)
+  .catch(() => {
+    console.log('The program has crashed. Sorry!');
+  });

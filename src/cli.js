@@ -1,8 +1,12 @@
 const inquirer = require('inquirer');
 const Word = require('./word.js');
 
+
+// configuration
+const STARTING_GUESSES = 9;
+
 // globals
-const words = [];
+let words = [];
 let word = null;
 let guessed = '';
 let guessesLeft = 0;
@@ -27,13 +31,19 @@ function validateInput(input) {
 // handle user guess. returns true if round finished
 function handleGuess({ guess }) {
   // letter or has already been guessed
-  if (!validateInput(guess) || guessed.includes(guess)) {
+  if (!validateInput(guess)) {
+    console.log('choose a letter');
+    return false;
+  }
+  if (guessed.includes(guess)) {
+    console.log(`Already guessed ${guess}`);
     return false;
   }
   guessed += guess;
 
   if (!word.hasLetter(guess)) {
     guessesLeft -= 1;
+    console.log(guessesLeft);
     if (guessesLeft === 0) {
       console.log(`Round over. You failed to correctly guess '${word.source}'`);
       return true;
@@ -63,7 +73,6 @@ function promptUser() {
   });
 }
 
-
 function startRound() {
   // main loop to prompt user and evaluate input
   function nextGuess() {
@@ -83,15 +92,16 @@ function startRound() {
     // initialize values for the round
     word = new Word(getRandomWord(), '_');
     guessed = '';
-    guessesLeft = 12;
+    guessesLeft = STARTING_GUESSES;
     nextGuess();
   } else {
     console.log('No more words left');
   }
 }
 
-function start() {
+function start(wordsArr) {
+  words = wordsArr;
   startRound();
 }
 
-module.exports = { words, start };
+module.exports = { start };

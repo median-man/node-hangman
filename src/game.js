@@ -3,8 +3,9 @@
 
 /* class description
 
-interface
-  constructed with a word string
+Constructor
+  accepts a word which must be a string with no white space and must not contain
+  the placeholder character ("_")
 
 Properties
   Number guesses  - The number of guesses remaining
@@ -25,6 +26,10 @@ Methods
     returns true if all letters in the word have been guessed else returns false
 
  */
+
+// dependencies
+const Word = require('./word.js');
+
 // config globals
 const placeholder = '_'; // used to mask hidden letters
 const maxGuesses = 8; // max failed guesses per word
@@ -43,6 +48,8 @@ function Game(word) {
 
 // Returns the word masking hidden letters with placeholder unless unMask is true.
 Game.prototype.getWord = function getWord(unMask = false) {
+  if (typeof unMask !== 'boolean') throw new Error('UnMask must be a boolean.');
+
   const word = this.word
     .split('')
     .map((letter) => {
@@ -52,7 +59,7 @@ Game.prototype.getWord = function getWord(unMask = false) {
       return letter;
     })
     .join('');
-  if (typeof unMask !== 'boolean') throw new Error('UnMask must be a boolean.');
+
   return unMask ? this.word : word;
 };
 
@@ -63,15 +70,19 @@ Game.prototype.guess = function guessLetter(letter) {
     throw new Error('Letter must be a single letter (a-z)');
   }
 
+  const lowerCase = letter.toLowerCase();
+
   // throws if game is over
   if (this.guesses <= 0) throw new Error('No guesses remaining.');
 
-  // decrement guesses if the letter is not in the word
-  const isInWord = RegExp(letter, 'i').test(this.word);
-  if (!isInWord) this.guesses -= 1;
+  // decrement guesses if the letter is not in the word and not already guessed
+  const isInWord = RegExp(lowerCase, 'i').test(this.word);
+  if (!isInWord && !this.guessedLetters.includes(lowerCase)) {
+    this.guesses -= 1;
+  }
 
   // track guessed letters
-  this.guessedLetters += letter;
+  this.guessedLetters += lowerCase;
 
   return isInWord;
 };

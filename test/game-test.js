@@ -162,6 +162,15 @@ describe('Game', () => {
         expect(() => game.guess('i')).not.change(game, 'guesses');
         validateGuesses(game); // ensure guesses property is valid
       });
+      it('ignores case', () => {
+        const word = 'pine';
+        const letter = 'I';
+        let game = new Game(word);
+        expect(() => game.guess(letter)).to.not.change(game, 'guesses');
+        game = new Game(word);
+        expect(game.guess(letter)).to.be.true;
+        validateGuesses(game); // ensure guesses property is valid
+      });
     });
     describe('when the letter is not in the word', () => {
       it('returns false if letter is not in the word', () => {
@@ -174,6 +183,22 @@ describe('Game', () => {
       it('decrements guesses remaining by 1', () => {
         const game = new Game('pine');
         expect(() => game.guess('a')).to.decrease(game, 'guesses').by(1);
+        validateGuesses(game); // ensure guesses property is valid
+      });
+      it('guesses remains unchanged if it has been guessed', () => {
+        const game = new Game('pine');
+        game.guess('a');
+        expect(() => game.guess('a')).not.change(game, 'guesses');
+        validateGuesses(game); // ensure guesses property is valid
+      });
+      it('ignores case', () => {
+        const word = 'pine';
+        const letter = 'A';
+        let game = new Game(word);
+        expect(() => game.guess(letter)).to.decrease(game, 'guesses').by(1);
+        expect(() => game.guess(letter)).to.not.change(game, 'guesses');
+        game = new Game(word);
+        expect(game.guess(letter)).to.be.false;
         validateGuesses(game); // ensure guesses property is valid
       });
     });

@@ -1,72 +1,12 @@
 const inquirer = require('inquirer');
-const Word = require('./word.js');
-
-
-// configuration
-const STARTING_GUESSES = 9;
-
-// globals
-let words = [];
-let word = null;
-let guessed = '';
-let guessesLeft = 0;
+const Game = require('./game.js');
 
 function renderLine(line) {
   console.log(line); // eslint-disable-line
 }
 
-function getRandomWord() {
-  const index = Math.floor(Math.random() * words.length);
-  return words.splice(index, 1)[0];
-}
-
 function renderWord(strWord) {
   renderLine(`\n${strWord.split('').join(' ')}\n`);
-}
-
-function validateInput(input) {
-  // input must be a letter
-  if (input.length !== 1 || !/[a-z]/i.test(input)) {
-    return false;
-  }
-  return true;
-}
-
-// handle user guess. returns true if round finished
-function handleGuess({ guess }) {
-  // is letter or has already been guessed
-  if (!validateInput(guess)) {
-    renderLine('choose a letter');
-    return false;
-  }
-  if (guessed.includes(guess)) {
-    renderLine(`Already guessed ${guess}`);
-    return false;
-  }
-  guessed += guess;
-
-  if (!word.hasLetter(guess)) {
-    guessesLeft -= 1;
-    renderLine(guessesLeft);
-    if (guessesLeft === 0) {
-      renderLine(`Round over. You failed to correctly guess '${word.source}'`);
-      return true;
-    }
-    renderLine('Incorrect');
-    renderLine(`${guessesLeft} guesses remaining`);
-    return false;
-  }
-
-  word.showLetter(guess);
-
-  // if all letters in the word have been guessed
-  if (word.allLettersVisible()) {
-    renderWord(word.toString());
-    renderLine('You completed the word!');
-    return true;
-  }
-  renderLine('Success!!');
-  return false;
 }
 
 function promptUser() {
@@ -77,34 +17,70 @@ function promptUser() {
   });
 }
 
-function startRound() {
+function startRound(word) {
+  const game = new Game(word);
+
+  // handle user guess. returns true if round finished
+  function handleGuess({ guess: letter }) {
+    let isCorrect = false;
+    try {
+      isCorrect = game.guess(letter);
+    } catch (err) {
+      if (err.message.includes('Letter must be a single letter')) {
+        return false;
+      }
+      throw err;
+    }
+
+    if (isCorrect) {
+      renderLine('Success!!');
+    }
+
+    if (game.isWon()) {
+      renderLine('You won!');
+      return true;
+    } else if (game.guesses === 0) {
+      renderLine(`Game over. You have ${game.guesses} left!`);
+      renderLine(`The word is ${game.getWord(true)}`);
+      return true;
+    }
+
+    if (!isCorrect) {
+      renderLine(`Incorrect. ${game.guesses} guesses left!`);
+    }
+    return false;
+  }
+
   // main loop to prompt user and evaluate input
   function nextGuess() {
     // display prompt and masked word
-    renderWord(word.toString());
-    promptUser()
+    renderWord(game.getWord());
+    return promptUser()
       .then(handleGuess)
-      .then((startNewRound) => {
-        if (startNewRound) return startRound();
-        return nextGuess();
+      .then((gameFinished) => {
+        if (!gameFinished) return nextGuess();
+        return null;
       });
   }
-
-  // game continues until no words remain
-  if (words.length > 0) {
-    // initialize values for the round
-    word = new Word(getRandomWord(), '_');
-    guessed = '';
-    guessesLeft = STARTING_GUESSES;
-    nextGuess();
-  } else {
-    renderLine('No more words left');
-  }
+  return nextGuess();
 }
 
-function start(wordsArr) {
-  words = wordsArr;
-  startRound();
+// Accepts an array of words to play through.
+function start(words) {
+  if (!Array.isArray(words)) throw new Error('Expected words to be an array.');
+  const index = Math.floor(Math.random() * words.length);
+  const word = words.splice(index, 1)[0];
+  try {
+    renderLine('-'.repeat(20));
+    renderLine(''.repeat(20));
+
+    startRound(word).then(() => {
+      if (words.length > 0) start(words);
+    });
+  } catch (error) {
+    // skip to next word
+    if (words.length > 0) start(words);
+  }
 }
 
 module.exports = { start };
